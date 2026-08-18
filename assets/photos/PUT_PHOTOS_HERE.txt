@@ -1,0 +1,11 @@
+このフォルダに、次の7枚の写真をファイル名を変えずに入れてください。
+
+After20260818_Mitsui_20250804.jpg
+After20260818_Mitsui_20251007.jpg
+After20260818_Mitsui_20251203.jpg
+After20260818_Mitsui_20260210.jpg
+After20260818_Mitsui_20260406.jpg
+After20260818_Mitsui_20260609.jpg
+After20260818_Mitsui_20260818.jpg
+
+写真を追加するときは、data.js の photos 配列にも撮影日とファイル名を追加してください。

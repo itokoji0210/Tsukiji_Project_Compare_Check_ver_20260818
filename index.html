@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1016">
+  <meta name="description" content="同じ場所から撮影した写真を、日付を選んで直感的に比較できる定点写真ビューア">
+  <title>定点写真｜変化を比較</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="header">
+      <div class="title-group">
+        <p class="eyebrow">FIXED-POINT ARCHIVE</p>
+        <h1 id="siteTitle">定点写真｜変化を比較</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-button" id="helpButton" type="button" aria-label="操作方法" title="操作方法">?</button>
+        <button class="icon-button" id="fullscreenButton" type="button" aria-label="全画面表示" title="全画面表示">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5m13 5h5v-5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="viewer" id="viewer" aria-label="定点写真比較ビューア">
+      <div class="image-stage" id="imageStage">
+        <img class="photo photo-base" id="baseImage" alt="比較元の定点写真" draggable="false">
+        <div class="compare-layer" id="compareLayer">
+          <img class="photo photo-compare" id="compareImage" alt="比較先の定点写真" draggable="false">
+        </div>
+        <div class="split-line" id="splitLine" aria-hidden="true">
+          <span class="split-handle"><span>‹</span><span>›</span></span>
+        </div>
+        <div class="difference-note" id="differenceNote">同じ部分は暗く、変化した部分は明るく表示</div>
+      </div>
+
+      <div class="date-badge date-badge-base">
+        <span class="badge-label">基準</span>
+        <time id="baseDate"></time>
+      </div>
+      <div class="date-badge date-badge-compare">
+        <span class="badge-label">比較</span>
+        <time id="compareDate"></time>
+      </div>
+
+      <div class="zoom-actions" aria-label="表示倍率">
+        <button class="small-button" id="zoomOutButton" type="button" aria-label="縮小">−</button>
+        <button class="zoom-value" id="resetViewButton" type="button" title="表示位置をリセット">100%</button>
+        <button class="small-button" id="zoomInButton" type="button" aria-label="拡大">＋</button>
+      </div>
+
+      <div class="mode-panel">
+        <div class="mode-tabs" role="tablist" aria-label="比較方法">
+          <button class="mode-tab is-active" type="button" data-mode="split" role="tab" aria-selected="true">スライド</button>
+          <button class="mode-tab" type="button" data-mode="fade" role="tab" aria-selected="false">フェード</button>
+          <button class="mode-tab" type="button" data-mode="difference" role="tab" aria-selected="false">差分</button>
+        </div>
+        <label class="range-row" for="compareRange">
+          <span id="rangeStartLabel">基準</span>
+          <input id="compareRange" type="range" min="0" max="100" value="50" aria-label="比較位置">
+          <span id="rangeEndLabel">比較</span>
+        </label>
+      </div>
+    </main>
+
+    <section class="timeline-panel" aria-label="撮影日の選択">
+      <div class="timeline-heading">
+        <div>
+          <p class="section-label">TIMELINE</p>
+          <p class="selection-summary"><span id="photoCount">0</span>時点から比較</p>
+        </div>
+        <button class="play-button" id="playButton" type="button" aria-pressed="false">
+          <span class="play-icon">▶</span><span class="play-label">自動再生</span>
+        </button>
+      </div>
+      <div class="timeline" id="timeline"></div>
+      <p class="timeline-help">日付をタップして「比較」を変更。もう一度タップすると「基準」に設定します。</p>
+    </section>
+  </div>
+
+  <dialog class="help-dialog" id="helpDialog">
+    <button class="dialog-close" id="closeHelpButton" type="button" aria-label="閉じる">×</button>
+    <p class="section-label">HOW TO USE</p>
+    <h2>写真の変化を比べる</h2>
+    <ul>
+      <li>下の日付をタップして、比較する写真を選びます。</li>
+      <li>選択中の日付をもう一度タップすると、基準写真になります。</li>
+      <li>画像はドラッグで移動、ホイールまたはピンチで拡大できます。</li>
+      <li>「差分」は撮影位置が揃っているほど、変化が分かりやすくなります。</li>
+    </ul>
+  </dialog>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
