@@ -70,9 +70,18 @@
           <p class="section-label">TIMELINE</p>
           <p class="selection-summary"><span id="photoCount">0</span>時点から比較</p>
         </div>
-        <button class="play-button" id="playButton" type="button" aria-pressed="false">
-          <span class="play-icon">▶</span><span class="play-label">自動再生</span>
-        </button>
+        <div class="autoplay-controls">
+          <label class="play-style" for="playStyleSelect">
+            <span>再生方法</span>
+            <select id="playStyleSelect">
+              <option value="fade" selected>なめらかフェード</option>
+              <option value="step">通常切替</option>
+            </select>
+          </label>
+          <button class="play-button" id="playButton" type="button" aria-pressed="false">
+            <span class="play-icon">▶</span><span class="play-label">自動再生</span>
+          </button>
+        </div>
       </div>
       <div class="timeline" id="timeline"></div>
       <p class="timeline-help">日付をタップして「比較」を変更。もう一度タップすると「基準」に設定します。</p>
@@ -87,6 +96,7 @@
       <li>下の日付をタップして、比較する写真を選びます。</li>
       <li>選択中の日付をもう一度タップすると、基準写真になります。</li>
       <li>画像はドラッグで移動、ホイールまたはピンチで拡大できます。</li>
+      <li>自動再生は「なめらかフェード」と「通常切替」を選べます。</li>
       <li>「差分」は撮影位置が揃っているほど、変化が分かりやすくなります。</li>
     </ul>
   </dialog>

@@ -19,6 +19,7 @@
     rangeStart: document.getElementById("rangeStartLabel"),
     rangeEnd: document.getElementById("rangeEndLabel"),
     play: document.getElementById("playButton"),
+    playStyle: document.getElementById("playStyleSelect"),
     zoomValue: document.getElementById("resetViewButton"),
     helpDialog: document.getElementById("helpDialog")
   };
@@ -34,7 +35,9 @@
     x: 0,
     y: 0,
     playing: false,
-    playTimer: null
+    playTimer: null,
+    playFrame: null,
+    playStyle: "fade"
   };
 
   function displayDate(date, compact = false) {
@@ -58,6 +61,12 @@
   }
 
   function loadWithFallback(image, photo) {
+    image.onload = () => {
+      if (image === elements.baseImage && image.naturalWidth && image.naturalHeight && image.dataset.missing !== "true") {
+        const ratio = Math.min(2.4, Math.max(1, image.naturalWidth / image.naturalHeight));
+        document.documentElement.style.setProperty("--mobile-photo-ratio", ratio);
+      }
+    };
     image.onerror = () => {
       image.onerror = null;
       image.src = placeholder(photo);
@@ -145,12 +154,12 @@
     updateUrl();
   }
 
-  function setRange(value) {
+  function setRange(value, updateHistory = true) {
     state.value = Number(value);
     document.documentElement.style.setProperty("--compare-position", `${state.value}%`);
     document.documentElement.style.setProperty("--compare-opacity", state.value / 100);
     elements.range.value = state.value;
-    updateUrl();
+    if (updateHistory) updateUrl();
   }
 
   function clampPan() {
@@ -185,11 +194,45 @@
     history.replaceState(null, "", `${location.pathname}?${params}${location.hash}`);
   }
 
-  function startPlayback() {
-    state.playing = true;
-    elements.play.setAttribute("aria-pressed", "true");
-    elements.play.querySelector(".play-icon").textContent = "Ⅱ";
-    elements.play.querySelector(".play-label").textContent = "停止";
+  function prepareFadeFrame() {
+    state.baseIndex = state.compareIndex;
+    state.compareIndex = (state.compareIndex + 1) % photos.length;
+    setRange(0, false);
+    renderSelection(true);
+  }
+
+  function startFadePlayback() {
+    setMode("fade");
+    state.compareIndex = state.baseIndex;
+    prepareFadeFrame();
+    const duration = 1300;
+    const hold = 650;
+    let startedAt = null;
+
+    const animate = timestamp => {
+      if (!state.playing) return;
+      if (startedAt === null) startedAt = timestamp;
+      const progress = Math.min(1, (timestamp - startedAt) / duration);
+      const eased = progress < .5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+      setRange(eased * 100, false);
+
+      if (progress < 1) {
+        state.playFrame = requestAnimationFrame(animate);
+      } else {
+        updateUrl();
+        state.playTimer = window.setTimeout(() => {
+          if (!state.playing) return;
+          prepareFadeFrame();
+          startedAt = null;
+          state.playFrame = requestAnimationFrame(animate);
+        }, hold);
+      }
+    };
+
+    state.playFrame = requestAnimationFrame(animate);
+  }
+
+  function startStepPlayback() {
     state.playTimer = window.setInterval(() => {
       state.compareIndex = (state.compareIndex + 1) % photos.length;
       if (state.compareIndex === state.baseIndex) state.compareIndex = (state.compareIndex + 1) % photos.length;
@@ -197,12 +240,26 @@
     }, 1800);
   }
 
+  function startPlayback() {
+    state.playing = true;
+    elements.play.setAttribute("aria-pressed", "true");
+    elements.play.querySelector(".play-icon").textContent = "Ⅱ";
+    elements.play.querySelector(".play-label").textContent = "停止";
+    state.playStyle = elements.playStyle.value;
+    elements.playStyle.disabled = true;
+    if (state.playStyle === "fade") startFadePlayback();
+    else startStepPlayback();
+  }
+
   function stopPlayback() {
     clearInterval(state.playTimer);
+    clearTimeout(state.playTimer);
+    cancelAnimationFrame(state.playFrame);
     state.playing = false;
     elements.play.setAttribute("aria-pressed", "false");
     elements.play.querySelector(".play-icon").textContent = "▶";
     elements.play.querySelector(".play-label").textContent = "自動再生";
+    elements.playStyle.disabled = false;
   }
 
   function bindPointerGestures() {
@@ -261,6 +318,7 @@
     document.querySelectorAll(".mode-tab").forEach(button => button.addEventListener("click", () => setMode(button.dataset.mode)));
     elements.range.addEventListener("input", event => setRange(event.target.value));
     elements.play.addEventListener("click", () => state.playing ? stopPlayback() : startPlayback());
+    elements.playStyle.addEventListener("change", () => { state.playStyle = elements.playStyle.value; });
     document.getElementById("zoomInButton").addEventListener("click", () => zoomBy(1.25));
     document.getElementById("zoomOutButton").addEventListener("click", () => zoomBy(.8));
     elements.zoomValue.addEventListener("click", resetView);
@@ -268,7 +326,7 @@
     document.getElementById("helpButton").addEventListener("click", () => elements.helpDialog.showModal());
     document.getElementById("closeHelpButton").addEventListener("click", () => elements.helpDialog.close());
     elements.helpDialog.addEventListener("click", event => { if (event.target === elements.helpDialog) elements.helpDialog.close(); });
-    window.addEventListener("resize", renderTransform);
+    window.addEventListener("resize", () => { updateMediaProfile(); renderTransform(); });
     window.addEventListener("keydown", event => {
       if (event.key === "ArrowRight") selectTimeline((state.compareIndex + 1) % photos.length);
       if (event.key === "ArrowLeft") selectTimeline((state.compareIndex - 1 + photos.length) % photos.length);
@@ -277,11 +335,18 @@
     });
   }
 
+  function updateMediaProfile() {
+    document.documentElement.dataset.media = matchMedia("(pointer: coarse)").matches ? "touch" : "mouse";
+    document.documentElement.dataset.layout = matchMedia("(max-width: 760px)").matches ? "mobile" : "desktop";
+    document.documentElement.dataset.orientation = matchMedia("(orientation: portrait)").matches ? "portrait" : "landscape";
+  }
+
   function init() {
     if (!archive || photos.length < 2) throw new Error("data.js に2枚以上の写真を登録してください。");
     document.title = `${archive.title}｜変化を比較`;
     document.getElementById("siteTitle").textContent = archive.title;
     document.getElementById("photoCount").textContent = photos.length;
+    updateMediaProfile();
     buildTimeline();
     bindEvents();
     bindPointerGestures();

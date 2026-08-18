@@ -13,6 +13,7 @@
   --image-scale: 1;
   --image-x: 0px;
   --image-y: 0px;
+  --mobile-photo-ratio: 1.7777778;
 }
 
 * { box-sizing: border-box; }
@@ -154,6 +155,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: ew-resiz
 .timeline-panel { padding: 16px clamp(14px, 4vw, 44px) max(16px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: var(--panel-solid); }
 .timeline-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .selection-summary { margin: 0; color: var(--muted); font-size: 12px; }
+.autoplay-controls { display: flex; align-items: center; gap: 8px; }
+.play-style { min-height: 38px; display: flex; align-items: center; gap: 7px; padding: 0 9px 0 12px; border: 1px solid var(--line); border-radius: 20px; color: var(--muted); background: rgba(6, 11, 16, .45); font-size: 10px; }
+.play-style select { max-width: 144px; border: 0; color: var(--text); background: transparent; font-size: 11px; cursor: pointer; outline: none; }
+.play-style option { color: var(--text); background: var(--panel-solid); }
 .play-button { min-height: 38px; display: flex; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid var(--line); border-radius: 20px; background: transparent; cursor: pointer; font-size: 12px; }
 .play-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-strong); }
 
@@ -178,20 +183,52 @@ input[type="range"] { width: 100%; accent-color: var(--accent); cursor: ew-resiz
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
 button:hover { border-color: rgba(255,255,255,.36); }
 
-@media (max-width: 640px) {
-  .app { grid-template-rows: auto minmax(340px, 55dvh) auto; }
+@media (max-width: 760px), (pointer: coarse) and (max-width: 900px) {
+  .app { display: block; min-height: 100dvh; }
   .header { min-height: 62px; }
   .eyebrow { display: none; }
   .icon-button { width: 38px; height: 38px; }
+  .viewer {
+    width: 100%;
+    height: calc(100vw / var(--mobile-photo-ratio) + 112px);
+    min-height: 0;
+    max-height: none;
+    overflow: hidden;
+  }
+  .image-stage { inset: 0 0 112px; background: #05080c; }
+  .photo { object-fit: contain; }
   .date-badge { top: 10px; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 8px; }
   .date-badge-compare { align-items: flex-end; }
-  .zoom-actions { right: 10px; bottom: 94px; }
+  .zoom-actions { right: 10px; bottom: 120px; }
   .zoom-actions .small-button { display: none; }
-  .mode-panel { bottom: 10px; }
+  .mode-panel { bottom: 8px; box-shadow: none; }
   .timeline-panel { padding-top: 12px; }
-  .timeline-heading { margin-bottom: 9px; }
+  .timeline-heading { align-items: flex-end; margin-bottom: 9px; }
+  .autoplay-controls { gap: 5px; }
+  .play-style { min-height: 36px; padding: 0 7px; }
+  .play-style > span { display: none; }
+  .play-style select { max-width: 120px; font-size: 10px; }
+  .play-button { min-height: 36px; padding: 0 11px; }
+  .play-button .play-label { display: none; }
   .timeline-help { display: none; }
-  .difference-note { top: 66px; }
+  .difference-note { top: 62px; }
+}
+
+@media (max-width: 420px) {
+  h1 { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .timeline-panel { padding-left: 10px; padding-right: 10px; }
+  .timeline-item { flex-basis: 112px; }
+  .play-style select { width: 106px; }
+}
+
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 34vw); grid-template-rows: auto 1fr; min-height: 100dvh; }
+  .header { grid-column: 1 / -1; }
+  .viewer { width: auto; height: auto; min-height: calc(100dvh - 62px); }
+  .timeline-panel { min-height: 0; overflow: hidden; border-top: 0; border-left: 1px solid var(--line); }
+  .timeline { height: calc(100dvh - 150px); flex-direction: column; overflow-x: hidden; overflow-y: auto; scroll-snap-type: y proximity; }
+  .timeline-item { width: 100%; flex: 0 0 auto; }
+  .timeline-thumb { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
